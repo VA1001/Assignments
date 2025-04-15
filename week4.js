@@ -19,7 +19,7 @@ function TextUpdater() {
   );
 }
 
-// 2. InputLoggerForm Component
+// 2. InputLoggerForm Component..
 function InputLoggerForm() {
   const [inputValue, setInputValue] = useState('');
 
