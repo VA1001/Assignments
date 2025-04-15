@@ -1,0 +1,143 @@
+// ==== app.js ====
+const express = require('express');
+const path = require('path');
+const app = express();
+
+// Sample user data (for API)
+const users = [
+  { id: 1, name: 'Alice', email: 'alice@example.com' },
+  { id: 2, name: 'Bob', email: 'bob@example.com' },
+];
+
+app.use(express.json());
+
+// Serve the HTML + React UI
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>React + Express App</title>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+      <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+      <script crossorigin src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.development.js"></script>
+      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-100">
+      <div id="root"></div>
+
+      <script type="text/babel">
+
+        const { BrowserRouter, Routes, Route, Link, useParams } = ReactRouterDOM;
+
+        const products = [
+          { id: 1, name: 'Product One', price: '$29.99', image: 'https://via.placeholder.com/300x200' },
+          { id: 2, name: 'Product Two', price: '$39.99', image: 'https://via.placeholder.com/300x200' },
+        ];
+
+        function LandingPage() {
+          return (
+            <div className="min-h-screen flex flex-col">
+              <nav className="bg-blue-600 text-white p-4">BrandName</nav>
+              <header className="text-center p-10 bg-gray-100">
+                <h1 className="text-4xl font-bold">Welcome to Our Store</h1>
+                <p className="text-lg mt-2">Find the best products for your needs</p>
+              </header>
+              <main className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+                {products.map((product) => (
+                  <div key={product.id} className="border rounded-xl p-4 shadow-md bg-white">
+                    <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-lg" />
+                    <h2 className="text-xl font-semibold mt-2">{product.name}</h2>
+                    <p className="text-gray-700">{product.price}</p>
+                    <Link to={"/product/" + product.id} className="text-blue-500 hover:underline mt-2 inline-block">View Details</Link>
+                  </div>
+                ))}
+              </main>
+              <footer className="bg-gray-200 text-center p-4 mt-auto">
+                <p>Follow us: 
+                  <a href="#" className="mx-2 text-blue-500">Twitter</a>
+                  <a href="#" className="mx-2 text-blue-600">Facebook</a>
+                </p>
+              </footer>
+            </div>
+          );
+        }
+
+        function ProductDetails() {
+          const { id } = useParams();
+          const productData = {
+            1: { name: 'Product One', description: 'Detailed info about Product One', price: '$29.99' },
+            2: { name: 'Product Two', description: 'Detailed info about Product Two', price: '$39.99' },
+          };
+          const product = productData[id];
+
+          if (!product) return <p className="p-6">Product not found</p>;
+
+          return (
+            <div className="p-6">
+              <h1 className="text-3xl font-bold">{product.name}</h1>
+              <p className="text-lg mt-2">{product.description}</p>
+              <p className="text-xl text-green-600 mt-4">{product.price}</p>
+              <Link to="/" className="text-blue-600 underline mt-4 block">Back to Home</Link>
+            </div>
+          );
+        }
+
+        function App() {
+          return (
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
+              </Routes>
+            </BrowserRouter>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<App />);
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+// Sample API routes
+app.get('/api/welcome', (req, res) => {
+  res.json({ message: 'Welcome to Express!' });
+});
+
+app.get('/api/users', (req, res) => {
+  res.json(users);
+});
+
+app.post('/api/users', (req, res) => {
+  const newUser = { id: Date.now(), ...req.body };
+  users.push(newUser);
+  res.status(201).json(newUser);
+});
+
+app.put('/api/users/:id', (req, res) => {
+  const userId = parseInt(req.params.id);
+  const index = users.findIndex(u => u.id === userId);
+  if (index !== -1) {
+    users[index] = { ...users[index], ...req.body };
+    res.json(users[index]);
+  } else {
+    res.status(404).json({ error: 'User not found' });
+  }
+});
+
+app.delete('/api/users/:id', (req, res) => {
+  const userId = parseInt(req.params.id);
+  const index = users.findIndex(u => u.id === userId);
+  if (index !== -1) {
+    users.splice(index, 1);
+    res.json({ message: 'User deleted' });
+  } else {
+    res.status(404).json({ error: 'User not found' });
+  }
+});
+
